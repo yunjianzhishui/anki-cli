@@ -4,6 +4,11 @@ Full command-line interface for Anki — operate your collection from the termin
 
 ## 安装
 
+### 前置要求
+
+- **Python 3.9+**
+- **Anki 桌面版**（若需日常刷卡片）：从 [Anki 官方 GitHub Releases](https://github.com/ankitects/anki/releases) 下载安装，与 anki-cli 共用同一套数据。anki-cli 依赖与 **Anki 25.09.x** 兼容。
+
 ### 步骤 1: 创建虚拟环境（推荐）
 
 ```bash
@@ -24,7 +29,7 @@ pip install -e .
 ```
 
 这会自动安装所有依赖：
-- `anki` — Anki 核心库（含编译好的 Rust 引擎）
+- `anki` (>=25.9,<26) — Anki 核心库，与桌面版 25.09.x 兼容
 - `typer` — CLI 框架
 - `rich` — 终端美化
 
@@ -41,14 +46,14 @@ anki-cli --help
 # 列出所有牌组
 anki-cli deck list
 
-# 查看待复习卡片
-anki-cli review due --deck "高中文言300"
+# 查看待复习卡片（将 "Default" 替换为你的牌组名）
+anki-cli review due --deck "Default"
 
 # 添加卡片
-anki-cli note add --front "鄙" --back "轻视" --deck "高中文言300"
+anki-cli note add --front "hello" --back "你好" --deck "Default"
 
 # 交互式复习
-anki-cli review start --deck "高中文言300"
+anki-cli review start --deck "Default"
 
 # 查看统计
 anki-cli stats today
@@ -61,8 +66,8 @@ anki-cli --json search cards "is:due"
 ### 指定 Profile
 
 ```bash
-# 使用非默认 profile
-anki-cli --profile "我的配置" deck list
+# 使用非默认 profile（将 "User 1" 替换为你的 profile 名）
+anki-cli --profile "User 1" deck list
 
 # 直接指定数据库路径
 anki-cli --path "C:\path\to\collection.anki2" deck list
@@ -95,3 +100,7 @@ anki-cli scheduler  — 调度器（version, upgrade, set-v3, unbury-deck）
 - **与 GUI 共存**：CLI 和 Anki GUI 可以同时运行。读操作完全安全，写操作通过 SQLite WAL 模式自动排队。
 - **数据位置**：默认读取 `%APPDATA%\Anki2\User 1\collection.anki2`（Windows）。
 - **JSON 模式**：加 `--json` 或 `-j` 全局选项，所有输出变为 JSON，便于 AI Agent 或脚本调用。
+
+## 许可证
+
+本项目采用 [AGPL-3.0-or-later](LICENSE)，与 [Anki](https://github.com/ankitects/anki) 保持一致。Copyright © 2025 yunjianzhishui
