@@ -1,0 +1,25 @@
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# 用户本地配置（可选：若需分享示例可移出此列表）
+decks.txt
+profiles.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
