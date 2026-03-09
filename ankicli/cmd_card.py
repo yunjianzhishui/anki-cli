@@ -27,25 +27,43 @@ def info(card_id: int = typer.Argument(..., help="Card ID")) -> None:
     """Show card details including fields, state, and scheduling info."""
     s = _get_state()
     with open_collection(s.profile, s.path) as col:
-        card = col.get_card(card_id)
-        note = card.note()
-        data = {
-            "card_id": card.id,
-            "note_id": card.nid,
-            "deck": col.decks.name(card.did),
-            "notetype": note.note_type()["name"],
-            "queue": card.queue,
-            "type": card.type,
-            "due": card.due,
-            "interval": card.ivl,
-            "ease_factor": card.factor / 10 if card.factor else 0,
-            "reviews": card.reps,
-            "lapses": card.lapses,
-        }
-        for key in note.keys():
-            data[f"field:{key}"] = note[key]
-        data["tags"] = " ".join(note.tags)
+        data = _build_card_info(col, card_id)
         print_single(data, title=f"Card {card_id}")
+
+
+def _build_card_info(col, card_id: int) -> dict:
+    """Build card info dict — shared by info and info-batch."""
+    card = col.get_card(card_id)
+    note = card.note()
+    data = {
+        "card_id": card.id,
+        "note_id": card.nid,
+        "deck": col.decks.name(card.did),
+        "notetype": note.note_type()["name"],
+        "queue": card.queue,
+        "type": card.type,
+        "due": card.due,
+        "interval": card.ivl,
+        "ease_factor": card.factor / 10 if card.factor else 0,
+        "reviews": card.reps,
+        "lapses": card.lapses,
+    }
+    for key in note.keys():
+        data[f"field:{key}"] = note[key]
+    data["tags"] = " ".join(note.tags)
+    return data
+
+
+@app.command("info-batch")
+def info_batch(ids: str = typer.Argument(..., help="Comma-separated card IDs")) -> None:
+    """Show details for multiple cards in one call."""
+    s = _get_state()
+    card_ids = _parse_ids(ids)
+    with open_collection(s.profile, s.path) as col:
+        rows = []
+        for cid in card_ids:
+            rows.append(_build_card_info(col, cid))
+        print_table(rows, title=f"Card Info ({len(rows)} cards)")
 
 
 @app.command()

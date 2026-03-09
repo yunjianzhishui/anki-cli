@@ -114,6 +114,52 @@ def move(
         print_success(f"Moved '{name}' under '{parent}'")
 
 
+@app.command("set-limits")
+def set_limits(
+    new_per_day: Optional[int] = typer.Option(None, "--new", "-n", help="Max new cards per day (0 to pause)"),
+    review_per_day: Optional[int] = typer.Option(None, "--review", "-r", help="Max reviews per day"),
+    deck_name: Optional[str] = typer.Option(None, "--deck", "-d", help="Deck name (omit to update all configs)"),
+) -> None:
+    """Set daily new/review limits. Use --new 0 to pause new cards."""
+    s = _get_state()
+    with open_collection(s.profile, s.path) as col:
+        if deck_name:
+            did = col.decks.id_for_name(deck_name)
+            if not did:
+                print_error(f"Deck '{deck_name}' not found")
+                raise typer.Exit(1)
+            configs = [col.decks.config_dict_for_deck_id(did)]
+        else:
+            configs = col.decks.all_config()
+
+        updated = 0
+        for conf in configs:
+            changed = False
+            if new_per_day is not None:
+                if "new" not in conf:
+                    conf["new"] = {}
+                conf["new"]["perDay"] = new_per_day
+                changed = True
+            if review_per_day is not None:
+                if "rev" not in conf:
+                    conf["rev"] = {}
+                conf["rev"]["perDay"] = review_per_day
+                changed = True
+            if changed:
+                col.decks.update_config(conf)
+                updated += 1
+
+        if updated:
+            msg = f"Updated {updated} config(s)"
+            if new_per_day is not None:
+                msg += f" · 新卡/天: {new_per_day}"
+            if review_per_day is not None:
+                msg += f" · 复习/天: {review_per_day}"
+            print_success(msg)
+        else:
+            print_error("Specify at least one of --new or --review")
+
+
 @app.command()
 def info(name: str = typer.Argument(..., help="Deck name")) -> None:
     """Show deck details and configuration."""
