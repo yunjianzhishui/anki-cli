@@ -95,3 +95,7 @@ anki-cli scheduler  — 调度器（version, upgrade, set-v3, unbury-deck）
 - **与 GUI 共存**：CLI 和 Anki GUI 可以同时运行。读操作完全安全，写操作通过 SQLite WAL 模式自动排队。
 - **数据位置**：默认读取 `%APPDATA%\Anki2\User 1\collection.anki2`（Windows）。
 - **JSON 模式**：加 `--json` 或 `-j` 全局选项，所有输出变为 JSON，便于 AI Agent 或脚本调用。
+
+## 许可证
+
+本项目采用 [AGPL-3.0-or-later](LICENSE)，与 [Anki](https://github.com/ankitects/anki) 保持一致。Copyright © 2025 yunjianzhishui
