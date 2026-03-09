@@ -5,12 +5,14 @@ from __future__ import annotations
 import sys
 import typer
 
-from ankicli import output
+from ankicli import i18n, output
+from ankicli.config import config_exists, set_lang
 
 app = typer.Typer(
     name="anki-cli",
     help="Anki CLI — full command-line interface for Anki, sharing the same core as the GUI.",
     no_args_is_help=True,
+    epilog="请关注公众号：止水学语文，获取更多使用资讯",
 )
 
 
@@ -23,6 +25,22 @@ class GlobalState:
 state = GlobalState()
 
 
+def _first_run_lang_prompt() -> None:
+    """Show language choice when config does not exist and stdout is TTY."""
+    if not sys.stdout.isatty():
+        return
+    print("Choose language / 选择语言:", file=sys.stderr)
+    print("  [1] 中文", file=sys.stderr)
+    print("  [2] English (default)", file=sys.stderr)
+    try:
+        choice = input().strip() or "2"
+    except EOFError:
+        choice = "2"
+    lang = "zh" if choice == "1" else "en"
+    set_lang(lang)
+    i18n.set_lang_override(lang)
+
+
 @app.callback()
 def main(
     profile: str = typer.Option("User 1", "--profile", "-p", help="Anki profile name"),
@@ -30,6 +48,7 @@ def main(
     json_output: bool = typer.Option(False, "--json", "-j", help="Output JSON instead of tables"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose logging"),
     version: bool = typer.Option(False, "--version", help="Show version"),
+    lang: str | None = typer.Option(None, "--lang", "-l", help="Override language: zh or en"),
 ) -> None:
     """Anki CLI — operate your Anki collection from the command line."""
     if sys.stdout and hasattr(sys.stdout, "reconfigure"):
@@ -40,6 +59,14 @@ def main(
     if version:
         typer.echo("anki-cli 0.1.0")
         raise typer.Exit()
+
+    if lang is not None:
+        if lang not in ("zh", "en"):
+            typer.echo("--lang must be 'zh' or 'en'", err=True)
+            raise typer.Exit(1)
+        i18n.set_lang_override(lang)
+    elif not config_exists() and not (len(sys.argv) >= 2 and sys.argv[1] == "lang"):
+        _first_run_lang_prompt()
 
     state.profile = profile
     state.path = path or None
@@ -65,6 +92,7 @@ from ankicli.cmd_db import app as db_app
 from ankicli.cmd_scheduler import app as scheduler_app
 from ankicli.cmd_revlog import app as revlog_app
 from ankicli.cmd_ac import app as ac_app
+from ankicli.cmd_lang import app as lang_app
 
 app.add_typer(deck_app, name="deck", help="Deck management")
 app.add_typer(card_app, name="card", help="Card operations")
@@ -83,6 +111,7 @@ app.add_typer(db_app, name="db", help="Database maintenance")
 app.add_typer(scheduler_app, name="scheduler", help="Scheduler management")
 app.add_typer(revlog_app, name="revlog", help="Review log queries")
 app.add_typer(ac_app, name="ac", help="AnkiConnect mode (use while GUI is running)")
+app.add_typer(lang_app, name="lang", help="Language (zh|en)")
 
 
 def cli() -> None:

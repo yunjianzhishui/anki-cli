@@ -21,6 +21,7 @@ from typing import Any, Generator
 
 from anki.collection import Collection
 
+from ankicli import i18n
 
 ANKICONNECT_URL = "http://127.0.0.1:8765"
 
@@ -44,11 +45,9 @@ def detect_collection_path(profile: str = "User 1") -> str:
     """Return the full path to collection.anki2 for the given profile."""
     col_path = detect_anki_base() / profile / "collection.anki2"
     if not col_path.exists():
-        print(
-            f"Error: collection not found at {col_path}\n"
-            f"Available profiles: {list_profiles()}",
-            file=sys.stderr,
-        )
+        profiles = list_profiles()
+        msg = i18n._("collection_not_found", path=str(col_path))
+        print(f"{i18n._('error')}: {msg}\n{i18n._('available_profiles')}: {profiles}", file=sys.stderr)
         raise SystemExit(1)
     return str(col_path)
 
@@ -209,19 +208,9 @@ def open_collection(
         err_msg = str(e)
         if "already open" in err_msg.lower() or "locked" in err_msg.lower():
             if ankiconnect_available():
-                print(
-                    "Hint: Anki GUI is running. Use 'anki-cli ac' commands for AnkiConnect mode,\n"
-                    "      or close Anki GUI to use direct mode.",
-                    file=sys.stderr,
-                )
+                print(i18n._("hint_gui_running"), file=sys.stderr)
             else:
-                print(
-                    "Error: Anki GUI has the database locked.\n"
-                    "  Option 1: Close Anki GUI, then retry.\n"
-                    "  Option 2: Install AnkiConnect plugin (code: 2055492159),\n"
-                    "            then use 'anki-cli ac' commands.",
-                    file=sys.stderr,
-                )
+                print(i18n._("error_gui_locked"), file=sys.stderr)
             raise SystemExit(1)
         raise
 
@@ -235,11 +224,7 @@ def open_collection(
 def open_ankiconnect() -> Generator[AnkiConnectProxy, None, None]:
     """Context manager for AnkiConnect proxy (when GUI is running)."""
     if not ankiconnect_available():
-        print(
-            "Error: AnkiConnect not available.\n"
-            "Make sure Anki is running and AnkiConnect plugin is installed (code: 2055492159).",
-            file=sys.stderr,
-        )
+        print(i18n._("error_ankiconnect_unavailable"), file=sys.stderr)
         raise SystemExit(1)
     proxy = AnkiConnectProxy()
     try:

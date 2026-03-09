@@ -6,6 +6,8 @@ import json
 import sys
 from typing import Any, Sequence
 
+from ankicli import i18n
+
 _json_mode = False
 
 
@@ -106,11 +108,11 @@ def print_success(message: str) -> None:
         print_json({"status": "ok", "message": message})
         return
     from rich.console import Console
-    Console().print(f"[green]OK[/green] {message}")
+    Console().print(f"[green]{i18n._('ok')}[/green] {message}")
 
 
 def print_error(message: str) -> None:
     if _json_mode:
         print_json({"status": "error", "message": message})
     else:
-        print(f"Error: {message}", file=sys.stderr)
+        print(f"{i18n._('error')}: {message}", file=sys.stderr)

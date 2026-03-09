@@ -267,18 +267,21 @@ def due(
         if deck:
             query += f' "deck:{deck}"'
         cids = col.find_cards(query)
+        today = col.sched.today
         rows = []
         for cid in cids[:limit]:
             card = col.get_card(cid)
             note = card.note()
             field_names = note.keys()
             front = _strip_html(note[field_names[0]]) if field_names else ""
+            overdue = today - card.due if card.type == 2 else 0
             rows.append({
                 "card_id": cid,
                 "front": front[:60],
                 "deck": col.decks.name(card.did),
                 "due": card.due,
                 "interval": card.ivl,
+                "overdue_days": overdue,
             })
         print_table(rows, title=f"Due Cards ({len(cids)} total, showing {len(rows)})")
 
